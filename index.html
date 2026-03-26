@@ -712,6 +712,26 @@ main {
 <div class="lb" id="lb" onclick="this.classList.remove('open')"><img id="lb-img" src="" alt=""></div>
 <div class="toast" id="toast"></div>
 
+<!-- PRIVACY BANNER (one-time, auto-dismisses) -->
+<div id="privacy-banner" style="
+  display:none;
+  position:fixed; bottom:calc(var(--mob-bottom) + 8px); left:50%;
+  transform:translateX(-50%);
+  background:rgba(26,20,16,0.88); color:rgba(255,255,255,0.75);
+  padding:8px 20px; border-radius:100px;
+  font-size:0.68rem; letter-spacing:0.04em;
+  z-index:600; white-space:nowrap;
+  backdrop-filter:blur(8px);
+  transition:opacity 0.4s;
+">
+  Anonymised order trends are collected to improve Haul.
+  <button onclick="dismissBanner()" style="
+    background:none;border:none;color:var(--blush);
+    cursor:pointer;font-size:0.68rem;margin-left:8px;
+    letter-spacing:0.04em;
+  ">Got it</button>
+</div>
+
 <script>
 /* ── ANIMATED BACKGROUND ───────────────────────── */
 (function() {
@@ -742,6 +762,62 @@ main {
   for (let i = 0; i < 14; i++) setTimeout(spawn, i * 800);
   setInterval(spawn, 1400);
 })();
+
+/* ── SUPABASE ──────────────────────────────────── */
+const SB_URL = 'https://hfhigktqetvuwwcgnsbd.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhmaGlna3RxZXR2dXd3Y2duc2JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NjUwMTAsImV4cCI6MjA5MDA0MTAxMH0.qsjJvBU7Jt2O0CYNJy7-XRndclNbXG0ru3cBvsTtuRo';
+
+// Generate or retrieve a random session ID for this browser (not tied to any name/identity)
+function getSessionId() {
+  let sid = localStorage.getItem('haul_sid');
+  if (!sid) { sid = 'sid_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('haul_sid', sid); }
+  return sid;
+}
+
+// Send anonymised trend data to Supabase
+async function syncToSupabase(order) {
+  try {
+    await fetch(`${SB_URL}/rest/v1/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        session_id:      getSessionId(),
+        category:        order.cat    || 'Other',
+        source:          order.source || '',
+        price:           parseFloat(order.price) || 0,
+        status:          order.status || 'ordered',
+        payment:         order.pay    || 'cod',
+        order_date:      order.date   || null,
+        country:         Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
+        quality_rating:  order.sentiment?.quality      ? parseInt(order.sentiment.quality)      : null,
+        satisfaction:    order.sentiment?.satisfaction  ? parseInt(order.sentiment.satisfaction)  : null,
+        buy_again:       order.sentiment?.again         || null,
+        as_described:    order.sentiment?.desc          || null,
+        returned:        order.status === 'returned'
+      })
+    });
+  } catch(e) { /* silent fail — local app still works perfectly */ }
+}
+
+// Show privacy banner once
+function initBanner() {
+  if (!localStorage.getItem('haul_banner_seen')) {
+    const b = document.getElementById('privacy-banner');
+    b.style.display = 'block';
+    setTimeout(() => { b.style.opacity = '0'; setTimeout(() => { b.style.display = 'none'; }, 400); localStorage.setItem('haul_banner_seen','1'); }, 6000);
+  }
+}
+function dismissBanner() {
+  const b = document.getElementById('privacy-banner');
+  b.style.opacity = '0';
+  setTimeout(() => b.style.display = 'none', 400);
+  localStorage.setItem('haul_banner_seen', '1');
+}
 
 /* ── STATE ─────────────────────────────────────── */
 let orders = JSON.parse(localStorage.getItem('haul_v3') || '[]');
@@ -918,7 +994,7 @@ function saveOrder(){
   const eid=document.getElementById('view-add').dataset.eid;
   const data={id:eid||Date.now().toString(),name,cat,source,date,eta:document.getElementById('f-eta').value,price:parseFloat(price),status:document.getElementById('f-status').value,pay:document.querySelector('input[name="pay"]:checked')?.value||'cod',notes:document.getElementById('f-notes').value.trim(),imgs:[...pImgs],sentiment:{quality:document.querySelector('input[name="quality"]:checked')?.value||null,satisfaction:document.querySelector('input[name="sat"]:checked')?.value||null,again:document.querySelector('input[name="again"]:checked')?.value||null,desc:document.querySelector('input[name="desc"]:checked')?.value||null,review:document.getElementById('f-review').value.trim()}};
   if(eid){const i=orders.findIndex(x=>x.id===eid);if(i!==-1)orders[i]=data;delete document.getElementById('view-add').dataset.eid;toast('Order updated');}
-  else{orders.unshift(data);toast('Order saved');}
+  else{orders.unshift(data);toast('Order saved'); syncToSupabase(data);}
   save();goTo('dashboard');
 }
 
@@ -939,6 +1015,7 @@ function openLb(src){document.getElementById('lb-img').src=src;document.getEleme
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+initBanner();
 </script>
 </body>
 </html>
