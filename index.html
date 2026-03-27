@@ -5,6 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Haul — Personal Order Tracker</title>
 <meta name="description" content="Track every purchase you make. From Daraz to Facebook sellers — log orders, monitor delivery, and reflect on your hauls.">
+
+<!-- ── PWA META TAGS ── -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c4869a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Haul">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+<!-- Splash screen colour for iOS -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -608,7 +625,6 @@ main {
       <div class="filter-scroll" id="filter-scroll">
         <button class="ft active" onclick="setF(this,'all')">All</button>
         <button class="ft" onclick="setF(this,'ordered')">Ordered</button>
-        <button class="ft" onclick="setF(this,'shipped')">Shipped</button>
         <button class="ft" onclick="setF(this,'received')">Received</button>
         <button class="ft" onclick="setF(this,'returned')">Returned</button>
       </div>
@@ -649,7 +665,7 @@ main {
             <div class="fg"><label>Price — BDT <span class="r">*</span></label><input type="number" id="f-price" placeholder="0" min="0" step="0.01" inputmode="decimal"></div>
             <div class="fg"><label>Status</label>
               <select id="f-status">
-                <option value="ordered">Ordered</option><option value="shipped">Shipped</option>
+                <option value="ordered">Ordered</option>
                 <option value="received">Received</option><option value="returned">Returned</option>
               </select>
             </div>
@@ -676,11 +692,11 @@ main {
       <div class="fs">
         <div class="fh" style="font-size:1.2rem">Post-Delivery Review</div>
         <p style="font-size:0.73rem;color:var(--ink-soft);line-height:1.6;margin-bottom:20px;">Fill in once your item arrives. Helps you remember what's worth reordering.</p>
-        <div class="fg"><label>Quality Rating</label><div class="si"><input type="radio" name="quality" id="q5" value="5"><label for="q5">★</label><input type="radio" name="quality" id="q4" value="4"><label for="q4">★</label><input type="radio" name="quality" id="q3" value="3"><label for="q3">★</label><input type="radio" name="quality" id="q2" value="2"><label for="q2">★</label><input type="radio" name="quality" id="q1" value="1"><label for="q1">★</label></div></div>
-        <div class="fg" style="margin-top:14px"><label>Overall Satisfaction</label><div class="si"><input type="radio" name="sat" id="s5" value="5"><label for="s5">★</label><input type="radio" name="sat" id="s4" value="4"><label for="s4">★</label><input type="radio" name="sat" id="s3" value="3"><label for="s3">★</label><input type="radio" name="sat" id="s2" value="2"><label for="s2">★</label><input type="radio" name="sat" id="s1" value="1"><label for="s1">★</label></div></div>
-        <div class="fg" style="margin-top:14px"><label>Would you buy from this seller again?</label><div class="trow"><div class="topt"><input type="radio" name="again" id="a-y" value="yes"><label for="a-y">Yes</label></div><div class="topt"><input type="radio" name="again" id="a-m" value="maybe"><label for="a-m">Maybe</label></div><div class="topt"><input type="radio" name="again" id="a-n" value="no"><label for="a-n">No</label></div></div></div>
-        <div class="fg" style="margin-top:14px"><label>Item as described?</label><div class="trow"><div class="topt"><input type="radio" name="desc" id="d-y" value="yes"><label for="d-y">Yes</label></div><div class="topt"><input type="radio" name="desc" id="d-m" value="mostly"><label for="d-m">Mostly</label></div><div class="topt"><input type="radio" name="desc" id="d-n" value="no"><label for="d-n">No</label></div></div></div>
-        <div class="fg" style="margin-top:14px"><label>Your Review</label><textarea id="f-review" placeholder="How did you feel about this purchase?"></textarea></div>
+        <div class="fg"><label>Quality Rating</label><div class="si"><input type="radio" name="quality" id="q5" value="5" onchange="autoSaveSentiment()"><label for="q5">★</label><input type="radio" name="quality" id="q4" value="4" onchange="autoSaveSentiment()"><label for="q4">★</label><input type="radio" name="quality" id="q3" value="3" onchange="autoSaveSentiment()"><label for="q3">★</label><input type="radio" name="quality" id="q2" value="2" onchange="autoSaveSentiment()"><label for="q2">★</label><input type="radio" name="quality" id="q1" value="1" onchange="autoSaveSentiment()"><label for="q1">★</label></div></div>
+        <div class="fg" style="margin-top:14px"><label>Overall Satisfaction</label><div class="si"><input type="radio" name="sat" id="s5" value="5" onchange="autoSaveSentiment()"><label for="s5">★</label><input type="radio" name="sat" id="s4" value="4" onchange="autoSaveSentiment()"><label for="s4">★</label><input type="radio" name="sat" id="s3" value="3" onchange="autoSaveSentiment()"><label for="s3">★</label><input type="radio" name="sat" id="s2" value="2" onchange="autoSaveSentiment()"><label for="s2">★</label><input type="radio" name="sat" id="s1" value="1" onchange="autoSaveSentiment()"><label for="s1">★</label></div></div>
+        <div class="fg" style="margin-top:14px"><label>Would you buy from this seller again?</label><div class="trow"><div class="topt"><input type="radio" name="again" id="a-y" value="yes" onchange="autoSaveSentiment()"><label for="a-y">Yes</label></div><div class="topt"><input type="radio" name="again" id="a-m" value="maybe" onchange="autoSaveSentiment()"><label for="a-m">Maybe</label></div><div class="topt"><input type="radio" name="again" id="a-n" value="no" onchange="autoSaveSentiment()"><label for="a-n">No</label></div></div></div>
+        <div class="fg" style="margin-top:14px"><label>Item as described?</label><div class="trow"><div class="topt"><input type="radio" name="desc" id="d-y" value="yes" onchange="autoSaveSentiment()"><label for="d-y">Yes</label></div><div class="topt"><input type="radio" name="desc" id="d-m" value="mostly" onchange="autoSaveSentiment()"><label for="d-m">Mostly</label></div><div class="topt"><input type="radio" name="desc" id="d-n" value="no" onchange="autoSaveSentiment()"><label for="d-n">No</label></div></div></div>
+        <div class="fg" style="margin-top:14px"><label>Your Review</label><textarea id="f-review" placeholder="How did you feel about this purchase?" oninput="autoSaveSentiment()"></textarea></div>
       </div>
     </div>
   </div>
@@ -852,7 +868,7 @@ function goTo(name) {
 function renderStats() {
   const t = orders.length;
   const rc = orders.filter(o => o.status === 'received').length;
-  const tr = orders.filter(o => ['ordered','shipped'].includes(o.status)).length;
+  const tr = orders.filter(o => o.status === 'ordered').length;
   const rt = orders.filter(o => o.status === 'returned').length;
   const sp = orders.filter(o => o.pay === 'paid').reduce((a,o) => a + +o.price, 0);
   const cd = orders.filter(o => o.pay === 'cod' && o.status !== 'returned').reduce((a,o) => a + +o.price, 0);
@@ -938,7 +954,7 @@ function openModal(id) {
     ['Source', o.source],['Price', `<span class="pr">৳${(+o.price).toLocaleString()}</span>`],
     ['Order Date', fd(o.date)],['ETA', o.eta ? fd(o.eta) : '—'],
     ['Payment', o.pay==='cod'?'Cash on Delivery':'Already Paid'],
-    ['Status', `<select class="ssel" onchange="qStatus('${id}',this.value)">${['ordered','shipped','received','returned'].map(s=>`<option value="${s}"${o.status===s?' selected':''}>${stxt(s)}</option>`).join('')}</select>`],
+    ['Status', `<select class="ssel" onchange="qStatus('${id}',this.value)">${['ordered','received','returned'].map(s=>`<option value="${s}"${o.status===s?' selected':''}>${stxt(s)}</option>`).join('')}</select>`],
   ];
   if (o.notes) cells.push(['Notes', `<em style="font-size:0.82rem">${o.notes}</em>`]);
   const sent = (o.sentiment && (o.sentiment.quality || o.sentiment.review)) ? `
@@ -1014,8 +1030,49 @@ function fd(d){if(!d)return'—';const[y,m,day]=d.split('-');return`${parseInt(d
 function openLb(src){document.getElementById('lb-img').src=src;document.getElementById('lb').classList.add('open');}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 
+
+/* ── AUTO-SAVE SENTIMENT ──────────────────────── */
+function autoSaveSentiment() {
+  const eid = document.getElementById('view-add').dataset.eid;
+  if (!eid) return; // only auto-save when editing an existing order
+  const o = orders.find(x => x.id === eid);
+  if (!o) return;
+  o.sentiment = {
+    quality:      document.querySelector('input[name="quality"]:checked')?.value || null,
+    satisfaction: document.querySelector('input[name="sat"]:checked')?.value || null,
+    again:        document.querySelector('input[name="again"]:checked')?.value || null,
+    desc:         document.querySelector('input[name="desc"]:checked')?.value || null,
+    review:       document.getElementById('f-review').value.trim(),
+  };
+  save();
+}
+
+/* ── AUTO-SAVE EXISTING ORDER FIELDS ─────────── */
+function autoSaveField() {
+  const eid = document.getElementById('view-add').dataset.eid;
+  if (!eid) return;
+  const o = orders.find(x => x.id === eid);
+  if (!o) return;
+  const status = document.getElementById('f-status').value;
+  const pay = document.querySelector('input[name="pay"]:checked')?.value;
+  const notes = document.getElementById('f-notes').value.trim();
+  if (status) o.status = status;
+  if (pay) o.pay = pay;
+  if (notes !== undefined) o.notes = notes;
+  save();
+}
+
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
 initBanner();
+
+// ── REGISTER SERVICE WORKER (PWA) ──
+if ('serviceWorker' in navigator && location.hostname !== 'www.claudeusercontent.com') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/my-little-orders/sw.js')
+      .then(reg => console.log('[Haul] Service worker registered:', reg.scope))
+      .catch(err => console.log('[Haul] Service worker failed:', err));
+  });
+}
 </script>
 </body>
 </html>
